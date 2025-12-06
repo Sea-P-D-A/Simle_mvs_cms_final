@@ -1,6 +1,7 @@
 <?php
 
 namespace application\controllers;
+use application\models\Note;
 
 /**
  * Контроллер для домашней страницы
@@ -10,7 +11,6 @@ class HomepageController extends \ItForFree\SimpleMVC\MVC\Controller
     /**
      * @var string Название страницы
      */
-    public $homepageTitle = "Домашняя страница";
     
     /**
      * @var string Пусть к файлу макета 
@@ -22,7 +22,11 @@ class HomepageController extends \ItForFree\SimpleMVC\MVC\Controller
      */
     public function indexAction()
     {
-        $this->view->addVar('homepageTitle', $this->homepageTitle); // передаём переменную по view
+        $noteModel = new Note();
+        $articles = $noteModel->getList(10)['results'];
+
+        //$this->view->addVar('homepageTitle', $this->homepageTitle); // передаём переменную по view
+        $this->view->addVar('articles', $articles);
         $this->view->render('homepage/index.php');
     }
 }
