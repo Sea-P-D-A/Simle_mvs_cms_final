@@ -19,7 +19,7 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
     /**
      * Основное действие контроллера
      */
-    public function indexAction()
+    /*public function indexAction()
     {
         $Adminusers = new UserModel();
         $userId = $_GET['id'] ?? null;
@@ -31,6 +31,34 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
         } else { // выводим полный список
             
             $users = $Adminusers->getList()['results'];
+            $this->view->addVar('users', $users);
+            $this->view->render('user/index.php');
+        }
+    }*/
+    public function indexAction()
+    {
+        $Adminusers = new UserModel();
+        $userId = $_GET['id'] ?? null;
+        
+        if ($userId) { // если указан конкретный пользователь
+            $viewAdminusers = $Adminusers->getById($_GET['id']);
+            
+            // Получаем количество просмотренных статей для этого пользователя
+            $viewedArticlesCount = $Adminusers->getViewedArticlesCount($userId);
+            $this->view->addVar('viewedArticlesCount', $viewedArticlesCount);
+            
+            $this->view->addVar('viewAdminusers', $viewAdminusers);
+            $this->view->render('user/view-item.php');
+        } else { // выводим полный список
+            
+            $users = $Adminusers->getList()['results'];
+            
+            // Для КАЖДОГО пользователя добавляем количество просмотренных статей
+            foreach ($users as &$user) {
+                $user->viewedArticlesCount = $Adminusers->getViewedArticlesCount($user->id);
+            }
+            unset($user); // разрываем ссылку
+            
             $this->view->addVar('users', $users);
             $this->view->render('user/index.php');
         }

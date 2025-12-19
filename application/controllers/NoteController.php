@@ -9,24 +9,39 @@ class NoteController extends \ItForFree\SimpleMVC\MVC\Controller
     public string $layoutPath = 'main.php';
     
     public function viewAction()
-    {
-        $id = $_GET['id'] ?? null;
-        
-        if (!$id) {
-            $this->redirect(Config::get('core.router.class')::link(''));
-        }
-        
-        $noteModel = new Note();
-        $article = $noteModel->getById($id);
-        
-        if (!$article) {
-            // Статья не найдена
-            $this->view->addVar('message', 'Статья не найдена');
-            $this->view->render('error.php');
-            return;
-        }
-        
-        $this->view->addVar('viewNotes', $article);
-        $this->view->render('note/view-item.php');
+{
+    $id = $_GET['id'] ?? null;
+
+    if (!$id) {
+        $this->redirect(Config::get('core.router.class')::link(''));
     }
+
+    $noteModel = new Note();
+    $article = $noteModel->getById($id);
+
+    if (!$article) {
+        $this->view->addVar('message', 'Статья не найдена');
+        $this->view->render('error.php');
+        return;
+    }
+
+    $User = Config::getObject('core.user.class');
+
+    if (!empty($User->userName)) {
+
+        $userModel = new \application\models\UserModel();
+        $userId = $userModel->getIdByLogin($User->userName);
+
+        if ($userId) {
+            $userModel->logArticleView($id, $userId);
+        } else {
+            error_log("viewAction: userId not found for login {$User->userName}");
+        }
+    }
+
+    $this->view->addVar('viewNotes', $article);
+    $this->view->render('note/view-item.php');
+}
+
+
 }

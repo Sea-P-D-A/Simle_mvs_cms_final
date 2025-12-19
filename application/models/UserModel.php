@@ -67,29 +67,31 @@ class UserModel extends Model
     
     public function update()
     {
+        // Если пароль был изменен (передан в объект)
         if (!empty($this->pass)){
-            $sql = "UPDATE $this->tableName SET timestamp=:timestamp, login=:login, pass=:pass, role=:role, email=:email  WHERE id = :id";  
-            $st = $this->pdo->prepare ( $sql );
-            $st->bindValue( ":pass", $this->pass, \PDO::PARAM_STR );
+            $sql = "UPDATE $this->tableName SET timestamp=:timestamp, login=:login, salt=:salt, pass=:pass, role=:role, email=:email  WHERE id = :id";  
+            $st = $this->pdo->prepare($sql);
+            
+            // Генерируем новую соль
+            $this->salt = rand(0, 1000000);
+            $st->bindValue(":salt", $this->salt, \PDO::PARAM_STR);
+            
+            // Хешируем пароль с солью
+            $saltedPassword = $this->pass . $this->salt;
+            $hashPass = password_hash($saltedPassword, PASSWORD_BCRYPT);
+            $st->bindValue(":pass", $hashPass, \PDO::PARAM_STR);
         }
         else{
-            $sql = "UPDATE $this->tableName SET timestamp=:timestamp, login=:login, role=:role, email=:email  WHERE id = :id";  
-            $st = $this->pdo->prepare ( $sql );
+            // Если пароль не меняли - оставляем старый
+            $sql = "UPDATE $this->tableName SET timestamp=:timestamp, login=:login, role=:role, email=:email WHERE id = :id";  
+            $st = $this->pdo->prepare($sql);
         }
 
-        $st->bindValue( ":timestamp", (new \DateTime('NOW'))->format('Y-m-d H:i:s'), \PDO::PARAM_STMT);
-        $st->bindValue( ":login", $this->login, \PDO::PARAM_STR );
-        
-        // Хеширование пароля
-        $this->salt = rand(0,1000000);
-        //$st->bindValue( ":salt", $this->salt, \PDO::PARAM_STR );
-        //$this->pass .= $this->salt;
-        //$hashPass = password_hash($this->pass, PASSWORD_BCRYPT);
-        //$st->bindValue( ":pass", $this->pass, \PDO::PARAM_STR );
-        
-        $st->bindValue( ":role", $this->role, \PDO::PARAM_STR );
-        $st->bindValue( ":email", $this->email, \PDO::PARAM_STR );
-        $st->bindValue( ":id", $this->id, \PDO::PARAM_INT );
+        $st->bindValue(":timestamp", (new \DateTime('NOW'))->format('Y-m-d H:i:s'), \PDO::PARAM_STR);
+        $st->bindValue(":login", $this->login, \PDO::PARAM_STR);
+        $st->bindValue(":role", $this->role, \PDO::PARAM_STR);
+        $st->bindValue(":email", $this->email, \PDO::PARAM_STR);
+        $st->bindValue(":id", $this->id, \PDO::PARAM_INT);
         $st->execute();
     }
     
@@ -146,6 +148,80 @@ public function getArticles()
     $st->bindValue(":user_id", $this->id, \PDO::PARAM_INT);
     $st->execute();
     return $st->fetchAll(\PDO::FETCH_OBJ);
+}
+
+/**
+ * Добавить запись о просмотре статьи
+ */
+public function logArticleView($articleId, $userId)
+{
+    if (!$userId || !$articleId) {
+        error_log("logArticleView: invalid data userId=$userId articleId=$articleId");
+        return false;
+    }
+
+    $sql = "INSERT INTO article_views (user_id, article_id, view_date)
+            VALUES (:user_id, :article_id, NOW())";
+
+    $st = $this->pdo->prepare($sql);
+    $st->bindValue(":user_id", $userId, \PDO::PARAM_INT);
+    $st->bindValue(":article_id", $articleId, \PDO::PARAM_INT);
+
+    return $st->execute();
+}
+
+
+/**
+ * Получить количество уникальных статей, просмотренных пользователем
+ */
+public function getViewedArticlesCount($userId = null)
+{
+    if (!$userId) {
+        $userId = $this->id;
+    }
+    
+    $sql = "SELECT COUNT(DISTINCT article_id) as count 
+            FROM article_views 
+            WHERE user_id = :user_id";
+    
+    $st = $this->pdo->prepare($sql);
+    $st->bindValue(":user_id", $userId, \PDO::PARAM_INT);
+    $st->execute();
+    $result = $st->fetch(\PDO::FETCH_ASSOC);
+    
+    return $result['count'] ?? 0;
+}
+
+/**
+ * Получить список просмотренных статей
+ */
+public function getViewedArticles($userId = null)
+{
+    if (!$userId) {
+        $userId = $this->id;
+    }
+    
+    $sql = "SELECT DISTINCT n.* 
+            FROM article_views av
+            JOIN notes n ON av.article_id = n.id
+            WHERE av.user_id = :user_id
+            ORDER BY av.view_date DESC";
+    
+    $st = $this->pdo->prepare($sql);
+    $st->bindValue(":user_id", $userId, \PDO::PARAM_INT);
+    $st->execute();
+    return $st->fetchAll(\PDO::FETCH_OBJ);
+}
+
+public function getIdByLogin($login)
+{
+    $sql = "SELECT id FROM users WHERE login = :login";
+    $st = $this->pdo->prepare($sql);
+    $st->bindValue(":login", $login, \PDO::PARAM_STR);
+    $st->execute();
+    $result = $st->fetch(\PDO::FETCH_ASSOC);
+    
+    return $result['id'] ?? null;
 }
 
 }
