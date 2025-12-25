@@ -25,7 +25,18 @@ class NoteController extends \ItForFree\SimpleMVC\MVC\Controller
         return;
     }
 
-    $User = Config::getObject('core.user.class');
+    // Увеличиваем счетчики просмотров категории и подкатегории
+    if ($article->categoryId) {
+        $Category = new \application\models\Category();
+        $Category->incrementViews($article->categoryId);
+    }
+    
+    if ($article->subcategoryId) {
+        $Subcategory = new \application\models\Subcategory();
+        $Subcategory->incrementViews($article->subcategoryId);
+    }
+
+/*    $User = Config::getObject('core.user.class');
 
     if (!empty($User->userName)) {
 
@@ -37,7 +48,7 @@ class NoteController extends \ItForFree\SimpleMVC\MVC\Controller
         } else {
             error_log("viewAction: userId not found for login {$User->userName}");
         }
-    }
+    }*/
 
     $this->view->addVar('viewNotes', $article);
     $this->view->render('note/view-item.php');

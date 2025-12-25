@@ -20,6 +20,7 @@ class SubcategoryController extends \ItForFree\SimpleMVC\MVC\Controller
             $this->redirect(Config::get('core.router.class')::link(''));
         }
         
+
         $subcategoryModel = new Subcategory();
         $subcategory = $subcategoryModel->getById($subcategoryId);
         
@@ -28,6 +29,9 @@ class SubcategoryController extends \ItForFree\SimpleMVC\MVC\Controller
             $this->view->render('error.php');
             return;
         }
+
+        // Увеличиваем счетчик просмотров
+        $subcategory->incrementViews($id);
         
         // Получаем статьи подкатегории
         $articles = $subcategory->getArticles();

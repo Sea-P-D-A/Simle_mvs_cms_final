@@ -16,7 +16,6 @@ $User = Config::getObject('core.user.class');
       <th scope="col">Email</th>
       <th>Роль</th>
       <th scope="col">Зарегистрирован</th>
-      <th>Просмотрено статей</th>
       <th scope="col"></th>
     </tr>
      </thead>
@@ -29,7 +28,6 @@ $User = Config::getObject('core.user.class');
         <td>  <?= $user->email ?> </td>
         <td>  <?= $user->role ?></td>
         <td>  <?= $user->timestamp ?> </td>
-        <td>  <?= $user->viewedArticlesCount ?> </td>
         <td>  <?= $User->returnIfAllowed("admin/adminusers/edit",
                     "<a href=" . \ItForFree\SimpleMVC\Router\WebRouter::link("admin/adminusers/edit&id=". $user->id) 
                     . ">[Редактировать]</a>");?></td>

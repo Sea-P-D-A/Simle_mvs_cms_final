@@ -20,16 +20,24 @@ class CategoryController extends \ItForFree\SimpleMVC\MVC\Controller
             $this->redirect(Config::get('core.router.class')::link(''));
         }
         
+
+        // Увеличиваем счетчик просмотров ПЕРЕД получением данных
+        
         // Получаем категорию
         $categoryModel = new Category();
         $category = $categoryModel->getById($categoryId);
         
+        
+
         if (!$category) {
             $this->view->addVar('message', 'Категория не найдена');
             $this->view->render('error.php');
             return;
         }
         
+        $category->incrementViews(category_id: $id);        
+
+
         // Получаем статьи этой категории
         $noteModel = new Note();
         $sql = "SELECT * FROM notes WHERE categoryId = :categoryId ORDER BY publicationDate DESC";

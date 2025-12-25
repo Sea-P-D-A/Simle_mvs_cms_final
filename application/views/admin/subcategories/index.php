@@ -13,6 +13,7 @@ use ItForFree\SimpleMVC\Router\WebRouter;
                 <th>ID</th>
                 <th>Название</th>
                 <th>Категория</th>
+                <th>Просмотры</th> <!-- ДОБАВЛЯЕМ -->
                 <th>Действия</th>
             </tr>
         </thead>
@@ -30,6 +31,7 @@ use ItForFree\SimpleMVC\Router\WebRouter;
                         <span class="text-muted">Категория удалена</span>
                     <?php endif; ?>
                 </td>
+                <td> <?= $subcat->views_count ?? 0 ?> </td> <!-- ДОБАВЛЯЕМ -->
                 <td>
                     <a href="<?= WebRouter::link('admin/adminsubcategories/edit&id=' . $subcat->id) ?>" 
                        class="btn btn-sm btn-warning">Редактировать</a>

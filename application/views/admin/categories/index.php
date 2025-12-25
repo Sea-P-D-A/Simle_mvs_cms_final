@@ -16,6 +16,7 @@ $User = Config::getObject('core.user.class');
                 <th>ID</th>
                 <th>Название</th>
                 <th>Описание</th>
+                <th>Просмотры</th> <!-- ДОБАВЛЯЕМ -->
                 <th>Действия</th>
             </tr>
         </thead>
@@ -25,6 +26,7 @@ $User = Config::getObject('core.user.class');
                 <td><?= $category->id ?></td>
                 <td><?= htmlspecialchars($category->name) ?></td>
                 <td><?= htmlspecialchars($category->description ?? '') ?></td>
+                <td> <?= $category->views_count ?? 0 ?> </td> <!-- ДОБАВЛЯЕМ -->
                 <td>
                     <a href="<?= WebRouter::link('admin/admincategories/edit&id=' . $category->id) ?>" 
                        class="btn btn-sm btn-warning">Редактировать</a>
